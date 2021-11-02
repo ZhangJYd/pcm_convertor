@@ -8,11 +8,13 @@ package resample
 */
 import "C"
 import (
+	"bytes"
 	"errors"
-	"github.com/ZhangJYd/pcm_convertor/format"
-	"github.com/ZhangJYd/pcm_convertor/model"
 	"runtime"
 	"unsafe"
+
+	"github.com/ZhangJYd/pcm_convertor/format"
+	"github.com/ZhangJYd/pcm_convertor/model"
 )
 
 const (
@@ -25,11 +27,12 @@ const (
 )
 
 type Resampler struct {
-	soxr     C.soxr_t
-	inRate   int
-	outRate  int
-	channels int
-	format   format.PcmFormat
+	soxr        C.soxr_t
+	inRate      int
+	outRate     int
+	channels    int
+	format      format.PcmFormat
+	destination *bytes.Buffer
 }
 
 var threads int
@@ -66,18 +69,20 @@ func NewResampler(inRate, outRate, channels, quality int, format format.PcmForma
 	}
 	C.free(unsafe.Pointer(soxErr))
 	return &Resampler{
-		soxr:     soxr,
-		inRate:   inRate,
-		outRate:  outRate,
-		channels: channels,
-		format:   format,
+		soxr:        soxr,
+		inRate:      inRate,
+		outRate:     outRate,
+		channels:    channels,
+		format:      format,
+		destination: new(bytes.Buffer),
 	}, nil
 }
 
-func (r *Resampler) Reset() (err error) {
+func (r *Resampler) reset() (err error) {
 	if r.soxr == nil {
 		return errors.New("soxr resampler is nil")
 	}
+	r.destination.Reset()
 	C.soxr_clear(r.soxr)
 	return
 }
@@ -87,6 +92,7 @@ func (r *Resampler) Close() (err error) {
 		return errors.New("soxr resampler is nil")
 	}
 	C.soxr_delete(r.soxr)
+	r.destination.Reset()
 	r.soxr = nil
 	return
 }
@@ -109,6 +115,11 @@ func (r *Resampler) Process(data []byte) ([]byte, error) {
 	if framesOutLen == 0 {
 		return []byte{}, nil
 	}
+
+	if r.destination.Len() > r.channels*r.outRate*r.format.FrameSize()*30 {
+		r.reset()
+	}
+
 	dataIn := C.CBytes(data)
 	dataOut := C.malloc(C.size_t(framesOutLen * r.channels * r.format.FrameSize()))
 	var soxErr C.soxr_error_t
@@ -126,20 +137,21 @@ func (r *Resampler) Process(data []byte) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-		}
-		if int(read) == framesLen && int(done) < framesOutLen {
-			// Indicate end of input to the resampler
-			var d C.size_t = 0
-			soxErr = C.soxr_process(r.soxr, C.soxr_in_t(nil), C.size_t(0), nil, C.soxr_out_t(dataOut), C.size_t(framesOutLen), &d)
-			if C.GoString(soxErr) != "" && C.GoString(soxErr) != "0" {
-				err := errors.New(C.GoString(soxErr))
-				if err != nil {
+			if int(read) == framesLen && int(done) < framesOutLen {
+				// Indicate end of input to the resampler
+				var d C.size_t = 0
+				soxErr = C.soxr_process(r.soxr, C.soxr_in_t(nil), C.size_t(0), nil, C.soxr_out_t(dataOut), C.size_t(framesOutLen), &d)
+				if C.GoString(soxErr) != "" && C.GoString(soxErr) != "0" {
+					err = errors.New(C.GoString(soxErr))
 					return nil, err
 				}
+				done += d
+				break
 			}
-			done += d
-			break
 		}
 	}
-	return C.GoBytes(dataOut, C.int(int(done)*r.channels*r.format.FrameSize())), nil
+	r.destination.Write(C.GoBytes(dataOut, C.int(int(done)*r.channels*r.format.FrameSize())))
+	out := make([]byte, int(done)*r.channels*r.format.FrameSize())
+	copy(out, C.GoBytes(dataOut, C.int(int(done)*r.channels*r.format.FrameSize())))
+	return out, nil
 }

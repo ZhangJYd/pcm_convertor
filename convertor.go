@@ -2,6 +2,7 @@ package pcm_convertor
 
 import (
 	"encoding/binary"
+
 	"github.com/ZhangJYd/pcm_convertor/format"
 	"github.com/ZhangJYd/pcm_convertor/model"
 	"github.com/ZhangJYd/pcm_convertor/resample"
@@ -48,10 +49,6 @@ func NewConvertor(in, out *StreamInfo, resampleQuality, channels int) (*Converto
 		formatConvertor: formatConvertor,
 		resampler:       resampler,
 	}, nil
-}
-
-func (p *Convertor) Reset() error {
-	return p.resampler.Reset()
 }
 
 func (p *Convertor) Close() error {

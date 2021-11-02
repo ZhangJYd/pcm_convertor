@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"github.com/ZhangJYd/pcm_convertor/model"
 	"io"
 	"math"
+
+	"github.com/ZhangJYd/pcm_convertor/model"
 )
 
 type Convertor struct {
@@ -202,12 +203,16 @@ func ConvertFormatForFrame(inData []byte, outW io.Writer, inF, outF PcmFormat, o
 		return ConvertFormatForFrame(buf.Bytes(), outW, S32, outF, order)
 	} else {
 		in32Data := make([]byte, 4)
-		for i := range in32Data {
-			if i < len(inData) {
-				in32Data[len(in32Data)-i-1] = inData[len(inData)-i-1]
-			} else {
-				break
+		if order == binary.LittleEndian {
+			for i := range in32Data {
+				if i < len(inData) {
+					in32Data[len(in32Data)-i-1] = inData[len(inData)-i-1]
+				} else {
+					break
+				}
 			}
+		} else if order == binary.BigEndian {
+			copy(in32Data, inData)
 		}
 		in32, err := BytesToInt32(in32Data, order)
 		if err != nil {
