@@ -21,7 +21,7 @@ import (
 func main() {
 	f, err := os.Open("16k_16bit.pcm")
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 
@@ -39,7 +39,7 @@ func main() {
 	}
 	c, err := pcm_convertor.NewConvertor(InInfo, outInfo, resample.VeryHighQ, 1)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 		return
 	}
 	defer c.Close()
