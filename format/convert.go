@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"github.com/ZhangJYd/pcm_convertor/model"
 	"io"
 	"math"
-	"pcm_convertor/model"
 )
 
 type Convertor struct {

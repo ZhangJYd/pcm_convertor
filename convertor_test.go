@@ -3,10 +3,10 @@ package pcm_convertor
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/ZhangJYd/pcm_convertor/format"
+	"github.com/ZhangJYd/pcm_convertor/resample"
 	"io/ioutil"
 	"os"
-	"pcm_convertor/format"
-	"pcm_convertor/resample"
 	"testing"
 )
 

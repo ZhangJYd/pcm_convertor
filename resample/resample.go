@@ -9,8 +9,8 @@ package resample
 import "C"
 import (
 	"errors"
-	"pcm_convertor/format"
-	"pcm_convertor/model"
+	"github.com/ZhangJYd/pcm_convertor/format"
+	"github.com/ZhangJYd/pcm_convertor/model"
 	"runtime"
 	"unsafe"
 )

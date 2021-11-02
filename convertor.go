@@ -2,9 +2,9 @@ package pcm_convertor
 
 import (
 	"encoding/binary"
-	"pcm_convertor/format"
-	"pcm_convertor/model"
-	"pcm_convertor/resample"
+	"github.com/ZhangJYd/pcm_convertor/format"
+	"github.com/ZhangJYd/pcm_convertor/model"
+	"github.com/ZhangJYd/pcm_convertor/resample"
 )
 
 type Convertor struct {
