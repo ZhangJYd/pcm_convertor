@@ -1,4 +1,4 @@
-package pcm_convertor
+package convertor
 
 import (
 	"encoding/binary"

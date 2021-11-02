@@ -3,8 +3,8 @@ package utils
 import (
 	"bytes"
 	"encoding/binary"
-	"pcm_convertor/format"
-	"pcm_convertor/model"
+	"github.com/ZhangJYd/pcm_convertor/format"
+	"github.com/ZhangJYd/pcm_convertor/model"
 )
 
 func StereoToMono(data []byte, inFormat format.PcmFormat, channels int, order binary.ByteOrder) ([]byte, error) {
