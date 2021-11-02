@@ -4,7 +4,7 @@ go get -u github.com/ZhangJYd/pcm_convertor
 ```
 example:
 
-```
+```go
 package main
 
 import (
