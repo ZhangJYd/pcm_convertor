@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	"github.com/ZhangJYd/pcm_convertor"
 	"github.com/ZhangJYd/pcm_convertor/format"
@@ -12,12 +15,12 @@ import (
 )
 
 func main() {
+
 	f, err := os.Open("16k_16bit.pcm")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	defer f.Close()
 
 	outInfo := &pcm_convertor.StreamInfo{
@@ -30,7 +33,7 @@ func main() {
 		Format:     format.S16,
 		ByteOrder:  binary.LittleEndian,
 	}
-	c, err := pcm_convertor.NewConvertor(InInfo, outInfo, resample.VeryHighQ, 1)
+	c, err := pcm_convertor.NewConvertor(InInfo, outInfo, resample.Quick, 1)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -62,4 +65,5 @@ func main() {
 			break
 		}
 	}
+	log.Println(time.Since(t1) / 200)
 }

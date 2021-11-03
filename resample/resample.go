@@ -27,12 +27,12 @@ const (
 )
 
 type Resampler struct {
-	soxr        C.soxr_t
-	inRate      int
-	outRate     int
-	channels    int
-	format      format.PcmFormat
-	destination *bytes.Buffer
+	soxr     C.soxr_t
+	inRate   int
+	outRate  int
+	channels int
+	format   format.PcmFormat
+	cache    *bytes.Buffer
 }
 
 var threads int
@@ -69,12 +69,12 @@ func NewResampler(inRate, outRate, channels, quality int, format format.PcmForma
 	}
 	C.free(unsafe.Pointer(soxErr))
 	return &Resampler{
-		soxr:        soxr,
-		inRate:      inRate,
-		outRate:     outRate,
-		channels:    channels,
-		format:      format,
-		destination: new(bytes.Buffer),
+		soxr:     soxr,
+		inRate:   inRate,
+		outRate:  outRate,
+		channels: channels,
+		format:   format,
+		cache:    new(bytes.Buffer),
 	}, nil
 }
 
@@ -82,7 +82,7 @@ func (r *Resampler) reset() (err error) {
 	if r.soxr == nil {
 		return errors.New("soxr resampler is nil")
 	}
-	r.destination.Reset()
+	r.cache.Reset()
 	C.soxr_clear(r.soxr)
 	return
 }
@@ -92,7 +92,7 @@ func (r *Resampler) Close() (err error) {
 		return errors.New("soxr resampler is nil")
 	}
 	C.soxr_delete(r.soxr)
-	r.destination.Reset()
+	r.cache.Reset()
 	r.soxr = nil
 	return
 }
@@ -114,10 +114,6 @@ func (r *Resampler) Process(data []byte) ([]byte, error) {
 	framesOutLen := int(float64(framesLen) * (float64(r.outRate) / float64(r.inRate)))
 	if framesOutLen == 0 {
 		return []byte{}, nil
-	}
-
-	if r.destination.Len() > r.channels*r.outRate*r.format.FrameSize()*30 {
-		r.reset()
 	}
 
 	dataIn := C.CBytes(data)
@@ -150,8 +146,11 @@ func (r *Resampler) Process(data []byte) ([]byte, error) {
 			}
 		}
 	}
-	r.destination.Write(C.GoBytes(dataOut, C.int(int(done)*r.channels*r.format.FrameSize())))
+	r.cache.Write(C.GoBytes(dataOut, C.int(int(done)*r.channels*r.format.FrameSize())))
 	out := make([]byte, int(done)*r.channels*r.format.FrameSize())
-	copy(out, C.GoBytes(dataOut, C.int(int(done)*r.channels*r.format.FrameSize())))
+	_, err := r.cache.Read(out)
+	if err != nil {
+		return nil, err
+	}
 	return out, nil
 }

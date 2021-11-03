@@ -37,7 +37,7 @@ func main() {
 		Format:     format.S16,
 		ByteOrder:  binary.LittleEndian,
 	}
-	c, err := pcm_convertor.NewConvertor(InInfo, outInfo, resample.VeryHighQ, 1)
+	c, err := pcm_convertor.NewConvertor(InInfo, outInfo, resample.Quick, 1)
 	if err != nil {
 		log.Println(err)
 		return
@@ -50,7 +50,7 @@ func main() {
 	}
 	defer outF.Close()
 
-	chuckSize := 128
+	chuckSize := 1280 // customize
 	for {
 		chuck := make([]byte, InInfo.Format.FrameSize()*chuckSize)
 		n, err := f.Read(chuck)
