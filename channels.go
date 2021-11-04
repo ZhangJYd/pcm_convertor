@@ -1,13 +1,17 @@
-package tool
+package pcm_convertor
 
 import (
 	"bytes"
 	"encoding/binary"
+
 	"github.com/ZhangJYd/pcm_convertor/format"
 	"github.com/ZhangJYd/pcm_convertor/model"
 )
 
-func StereoToMono(data []byte, inFormat format.PcmFormat, channels int, order binary.ByteOrder) ([]byte, error) {
+func MonoToStereo(data []byte, inFormat format.PcmFormat, outChannels int) ([]byte, error) {
+	if outChannels == 1 {
+		return data, nil
+	}
 	if inFormat.FrameSize() < 0 {
 		return nil, model.ErrInvalidFormat
 	}
@@ -17,8 +21,36 @@ func StereoToMono(data []byte, inFormat format.PcmFormat, channels int, order bi
 	if len(data) < inFormat.FrameSize() {
 		return nil, model.ErrFrameSizeError
 	}
+	if outChannels < 1 {
+		return nil, model.ErrInvalidChannels
+	}
+	if fragment := len(data) % inFormat.FrameSize(); fragment != 0 {
+		data = data[:len(data)-fragment]
+	}
+	stereo := new(bytes.Buffer)
+
+	for i := 0; i < len(data); {
+		chunk := data[i : i+inFormat.FrameSize()]
+		for n := 0; n < outChannels; n++ {
+			stereo.Write(chunk)
+		}
+		i += inFormat.FrameSize()
+	}
+	return stereo.Bytes(), nil
+}
+
+func StereoToMono(data []byte, inFormat format.PcmFormat, channels int, order binary.ByteOrder) ([]byte, error) {
 	if channels == 1 {
 		return data, nil
+	}
+	if inFormat.FrameSize() < 0 {
+		return nil, model.ErrInvalidFormat
+	}
+	if len(data) == 0 {
+		return data, nil
+	}
+	if len(data) < inFormat.FrameSize() {
+		return nil, model.ErrFrameSizeError
 	}
 	if channels < 1 {
 		return nil, model.ErrInvalidChannels

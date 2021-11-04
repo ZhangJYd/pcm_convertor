@@ -11,7 +11,7 @@ import (
 )
 
 func TestProcessor(t *testing.T) {
-	f, err := os.Open("16k_16bit.pcm")
+	f, err := os.Open("16k_16bit_mono.pcm")
 	if err != nil {
 		t.Fatal(err)
 	}
