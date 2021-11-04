@@ -38,7 +38,10 @@ func main() {
 		return
 	}
 	defer c.Close()
-	outF, err := os.Create(fmt.Sprintf("%v_%v_%v.pcm", outInfo.Format.String(), outInfo.SampleRate, outInfo.ByteOrder))
+	outF, err := os.Create(
+		fmt.Sprintf("%v_%v_%v_%vchannels.pcm",
+			outInfo.Format.String(), outInfo.SampleRate, outInfo.ByteOrder, outInfo.Channels),
+	)
 	if err != nil {
 		log.Println(err)
 		return
