@@ -126,6 +126,8 @@ func StereoToMono(data []byte, inFormat format.PcmFormat, channels int, order bi
 			if err != nil {
 				return nil, err
 			}
+		default:
+			return nil, model.ErrInvalidFormat
 		}
 		i += inFormat.FrameSize() * channels
 	}
