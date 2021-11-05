@@ -87,7 +87,10 @@ func (p *Convertor) Process(data []byte) ([]byte, error) {
 				if err != nil {
 					return nil, err
 				}
-				return MonoToStereo(data2, p.out.Format, p.out.Channels)
+				if p.out.Channels > p.in.Channels {
+					return MonoToStereo(data2, p.out.Format, p.out.Channels)
+				}
+				return data2, err
 			} else {
 				dataL, err := format.BigEndianLittleEndianConvert(data1, p.out.Format, binary.BigEndian, binary.LittleEndian)
 				if err != nil {
@@ -101,10 +104,16 @@ func (p *Convertor) Process(data []byte) ([]byte, error) {
 				if err != nil {
 					return nil, err
 				}
-				return MonoToStereo(data2, p.out.Format, p.out.Channels)
+				if p.out.Channels > p.in.Channels {
+					return MonoToStereo(data2, p.out.Format, p.out.Channels)
+				}
+				return data2, err
 			}
 		}
-		return MonoToStereo(data1, p.out.Format, p.out.Channels)
+		if p.out.Channels > p.in.Channels {
+			return MonoToStereo(data1, p.out.Format, p.out.Channels)
+		}
+		return data1, err
 	}
 	if p.out.SampleRate != p.in.SampleRate {
 		if p.out.ByteOrder == binary.LittleEndian {
@@ -112,7 +121,10 @@ func (p *Convertor) Process(data []byte) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			return MonoToStereo(data2, p.out.Format, p.out.Channels)
+			if p.out.Channels > p.in.Channels {
+				return MonoToStereo(data2, p.out.Format, p.out.Channels)
+			}
+			return data2, err
 		} else {
 			dataL, err := format.BigEndianLittleEndianConvert(data, p.out.Format, binary.BigEndian, binary.LittleEndian)
 			if err != nil {
@@ -126,8 +138,14 @@ func (p *Convertor) Process(data []byte) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			return MonoToStereo(data2, p.out.Format, p.out.Channels)
+			if p.out.Channels > p.in.Channels {
+				return MonoToStereo(data2, p.out.Format, p.out.Channels)
+			}
+			return data2, err
 		}
 	}
-	return MonoToStereo(data, p.out.Format, p.out.Channels)
+	if p.out.Channels > p.in.Channels {
+		return MonoToStereo(data, p.out.Format, p.out.Channels)
+	}
+	return data, err
 }

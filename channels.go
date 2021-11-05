@@ -119,7 +119,7 @@ func StereoToMono(data []byte, inFormat format.PcmFormat, channels int, order bi
 				if err != nil {
 					return nil, err
 				}
-				sum += float64(n)
+				sum += n
 				j += inFormat.FrameSize()
 			}
 			err := binary.Write(mono, order, sum)
