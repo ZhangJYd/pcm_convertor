@@ -24,6 +24,10 @@ type StreamInfo struct {
 }
 
 func NewConvertor(in, out *StreamInfo, resampleQuality int) (*Convertor, error) {
+	if in == nil || out == nil {
+		return nil, model.ErrInvalidParameter
+	}
+
 	if out.SampleRate <= 0 || in.SampleRate <= 0 {
 		return nil, model.ErrInvalidSampleRate
 	}
@@ -65,6 +69,45 @@ func NewConvertor(in, out *StreamInfo, resampleQuality int) (*Convertor, error) 
 
 func (p *Convertor) Close() error {
 	return p.resampler.Close()
+}
+
+func (p *Convertor) Reset(in, out *StreamInfo, resampleQuality int) error {
+	p.Close()
+	if out.SampleRate <= 0 || in.SampleRate <= 0 {
+		return model.ErrInvalidSampleRate
+	}
+	if out.Format.FrameSize() < 0 || in.Format.FrameSize() < 0 {
+		return model.ErrInvalidFormat
+	}
+	if in.Channels <= 0 || out.Channels <= 0 {
+		return model.ErrInvalidChannels
+	}
+
+	if in.Channels != out.Channels {
+		if in.Channels != 1 && out.Channels != 1 {
+			return model.ErrChannelsConvert
+		}
+	}
+
+	formatConvertor, err := format.NewFormatConvertor(in.Format, out.Format, in.ByteOrder, out.ByteOrder)
+	if err != nil {
+		return err
+	}
+
+	channels := out.Channels
+	if in.Channels < out.Channels {
+		channels = in.Channels
+	}
+
+	resampler, err := resample.NewResampler(in.SampleRate, out.SampleRate, channels, resampleQuality, out.Format)
+	if err != nil {
+		return err
+	}
+	p.out = out
+	p.in = in
+	p.resampler = resampler
+	p.formatConvertor = formatConvertor
+	return nil
 }
 
 func (p *Convertor) Process(data []byte) ([]byte, error) {

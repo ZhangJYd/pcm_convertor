@@ -9,5 +9,6 @@ var (
 	ErrInvalidChannels   = errors.New("invalid channels")
 	ErrFrameSizeError    = errors.New("frame size model")
 	ErrPcmLenError       = errors.New("pcm len model")
+	ErrInvalidParameter  = errors.New("invalid parameter")
 	ErrChannelsConvert   = errors.New("only support multiple channels to mono or mono to multiple channels")
 )

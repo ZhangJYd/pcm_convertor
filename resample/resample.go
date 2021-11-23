@@ -48,7 +48,9 @@ func NewResampler(inRate, outRate, channels, quality int, format format.PcmForma
 	if format.ToSoxrDatatype() < 0 {
 		return nil, model.ErrInvalidFormat
 	}
-
+	if format > 6 || format < 0 {
+		return nil, model.ErrInvalidParameter
+	}
 	var soxr C.soxr_t
 	var soxErr C.soxr_error_t
 	ioSpec := C.soxr_io_spec(
