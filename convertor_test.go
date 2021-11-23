@@ -3,11 +3,12 @@ package pcm_convertor
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/ZhangJYd/pcm_convertor/format"
-	"github.com/ZhangJYd/pcm_convertor/resample"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/ZhangJYd/pcm_convertor/format"
+	"github.com/ZhangJYd/pcm_convertor/resample"
 )
 
 func TestProcessor(t *testing.T) {
@@ -24,13 +25,15 @@ func TestProcessor(t *testing.T) {
 		SampleRate: 32000,
 		Format:     format.S32,
 		ByteOrder:  binary.BigEndian,
+		Channels:   1,
 	}
 	InInfo := &StreamInfo{
 		SampleRate: 16000,
 		Format:     format.S16,
 		ByteOrder:  binary.LittleEndian,
+		Channels:   1,
 	}
-	c, err := NewConvertor(InInfo, outInfo, resample.VeryHighQ, 1)
+	c, err := NewConvertor(InInfo, outInfo, resample.VeryHighQ)
 	if err != nil {
 		t.Fatal(err)
 	}
