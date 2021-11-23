@@ -49,8 +49,9 @@ func main() {
 	defer outF.Close()
 
 	chuckSize := 128
+	chuck := make([]byte, inInfo.Format.FrameSize()*chuckSize)
+
 	for {
-		chuck := make([]byte, inInfo.Format.FrameSize()*chuckSize)
 		n, err := f.Read(chuck)
 		if err != nil || n < inInfo.Format.FrameSize()*chuckSize {
 			log.Println(err)
